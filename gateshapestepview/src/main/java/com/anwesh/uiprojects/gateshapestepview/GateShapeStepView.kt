@@ -28,9 +28,10 @@ fun Canvas.drawGSSNode(i : Int, scale : Float, paint : Paint) {
         val sc : Float = Math.min(0.5f, Math.max(0f, scale - 0.5f * j)) * 2
         save()
         translate(-size * sf, -size)
+        scale(sf, 1f)
         for(k in 0..1) {
             save()
-            rotate(90f * sc * k)
+            rotate(270f * sc * k)
             drawLine(0f, 0f, 0f, size, paint)
             restore()
         }
@@ -99,8 +100,53 @@ class GateShapeStepView(ctx : Context) : View(ctx) {
 
         fun stop() {
             if (animated) {
-                animated = false 
+                animated = false
             }
+        }
+    }
+
+    data class GSSNode(var i : Int, val state : State = State()) {
+
+        private var prev : GSSNode? = null
+
+        private var next : GSSNode? = null
+
+        init {
+            addNeighbor()
+        }
+
+        fun addNeighbor() {
+            if (i < nodes - 1) {
+                next = GSSNode(i + 1)
+                next?.prev = this
+            }
+        }
+
+        fun draw(canvas : Canvas, paint : Paint) {
+            canvas.drawGSSNode(i, state.scale, paint)
+            next?.draw(canvas, paint)
+        }
+
+        fun update(cb : (Int, Float) -> Unit) {
+            state.update {
+                cb(i, it)
+            }
+        }
+
+        fun startUpdating(cb : () -> Unit) {
+            state.startUpdating(cb)
+        }
+
+        fun getNext(dir : Int, cb : () -> Unit) : GSSNode {
+            var curr : GSSNode? = this.next
+            if (dir == -1) {
+                curr = prev
+            }
+            if (curr != null) {
+                return curr
+            }
+            cb()
+            return this
         }
     }
 }
