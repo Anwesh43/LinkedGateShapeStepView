@@ -175,4 +175,27 @@ class GateShapeStepView(ctx : Context) : View(ctx) {
             curr.startUpdating(cb)
         }
     }
+
+    data class Renderer(var view : GateShapeStepView) {
+
+        private val animator : Animator = Animator(view)
+
+        private val gss : GateShapeStep = GateShapeStep(0)
+
+        fun render(canvas : Canvas, paint : Paint) {
+            canvas.drawColor(Color.parseColor("#BDBDBD"))
+            gss.draw(canvas, paint)
+            animator.animate {
+                gss.update {i, scl ->
+                    animator.stop()
+                }
+            }
+        }
+
+        fun handleTap() {
+            gss.startUpdating {
+                animator.start()
+            }
+        }
+    }
 }
